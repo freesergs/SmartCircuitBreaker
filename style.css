@@ -1,0 +1,439 @@
+body {
+    background-color: #2D3E50; /* Dark, calming blue-gray */
+    color: #F5F5F5; /* Soft white for main text */
+    overflow-x: hidden;
+}
+
+.title h1 {
+    text-align: center;
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 40px; /* Adjust for desired title size */
+}
+
+.readings {
+    max-width: 400px;
+    margin: auto;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+}
+
+.readings table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.readings th,
+.readings td {
+    border: 1px solid #4A6D80; /* Darker shade for table borders */
+    padding: 8px;
+}
+
+.readings td a{
+    text-decoration: none;
+    color: #F5F5F5;
+}
+.readings th {
+    background-color: #3A5466; /* Slightly lighter than the background */
+    color: #F5F5F5; /* White text for table headers */
+    font-weight: bold;
+}
+
+.readings td {
+    color: #D1D9E6; /* Soft grayish-blue for better readability */
+    text-align: center;
+}
+
+.readings tr:nth-child(even) {
+    background-color: #3A5466; /* Alternating row color */
+}
+
+.readings tr:hover {
+    background-color: #506A7A; /* Row hover effect */
+}
+
+.controls {
+    text-align: center;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.main-switch,
+.sub-switches {
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #6C98C4; /* Calming blue for buttons */
+    color: #2D3E50; /* Darker text for contrast */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4A7F9E; /* Slightly darker blue for hover */
+}
+
+.sub-switches {
+    display: flex;
+    gap: 15px;
+}
+
+.conversion-table {
+    position: absolute;
+    margin-top: -160px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
+.conversion-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+}
+
+.conversion-table th,
+.conversion-table td {
+    border: 1px solid #4A6D80;
+    padding: 8px;
+    text-align: center;
+}
+
+.conversion-table th {
+    background-color: #3A5466;
+    color: #F5F5F5;
+    font-weight: bold;
+}
+
+.conversion-table tr:nth-child(even) {
+    background-color: #3A5466;
+}
+
+.conversion-table tr:hover {
+    background-color: #506A7A;
+}
+
+.conversion-rate {
+    position: relative;
+    margin-top: -5%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.conversion-rate label {
+    font-size: 16px;
+    color: #A1C4FF; /* Light blue for labels */
+}
+
+.conversion-rate input {
+    padding: 5px;
+    font-size: 16px;
+    width: 80px;
+    border: 1px solid #4A6D80;
+    border-radius: 5px;
+    background-color: #506A7A;
+    color: #F5F5F5;
+}
+
+.conversion-rate button {
+    padding: 5px 10px;
+    font-size: 16px;
+    background-color: #6C98C4;
+    color: #2D3E50;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.conversion-rate button:hover {
+    background-color: #4A7F9E;
+}
+
+.history{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+
+.history h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+.voltage{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+.voltage h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+
+.current{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+.current h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+
+.energy{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+.energy h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+
+.frequency{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+.frequency h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+
+.power{
+    top: 20px;
+    left: 125px;
+    position: relative;
+}
+.power h1{
+    color: #A1C4FF; /* Light blue for title */
+    margin: 0;
+    font-size: 25px;
+}
+.back-button {
+    position: fixed; /* Ensures the button stays in the same position relative to the viewport */
+    top: 10px;
+    left: 10px;
+    background-color: #4A7F9E;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 9999; /* Places the button above all other layers */
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.live-chart {
+    width: 600px; /* Decreased width */
+    height: 350px; /* Decreased height */
+    margin-top: 50px;
+    margin-left: 125px;
+    background-color: #3A5466; /* Darker background for the chart area */
+    border: 2px solid #4A6D80;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.live-chart iframe {
+    width: 50%; /* Make the iframe fill the container */
+    height: 50%; /* Make the iframe fill the container */
+    border: none; /* Remove the border */
+}
+
+.reading {
+    width: 300px;
+    background-color: #3A5466;
+    border: 2px solid #4A6D80;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-left: 60%;
+    margin-top: -200px;
+}
+
+.reading table {
+    margin-left: 500px;
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.reading th {
+    background-color: #3A5466;
+    color: #F5F5F5; /* White text */
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.reading td {
+    border: 1px solid #4A6D80;
+    padding: 8px;
+    text-align: center;
+    color: #D1D9E6; /* Soft grayish-blue */
+}
+
+.reading h2 {
+    text-align: center;
+    color: #A1C4FF; /* Light blue for title */
+}
+
+.history-box {
+    position: fixed; /* Fixed position on the screen */
+    top: 55%; /* Move the top of the box to the middle of the screen */
+    left: 50%; /* Move the left of the box to the middle of the screen */
+    transform: translate(-50%, -50%); /* Center the box */
+    width: 1000px; /* Width of the box */
+    max-height: 350px; /* Limit height */
+    overflow-y: auto; /* Allow scrolling */
+    background-color: #3A5466; /* Background color matching theme */
+    border: 2px solid #4A6D80; /* Border styling */
+    border-radius: 0px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow */
+    padding: 15px; /* Inner spacing */
+    color: #F5F5F5; /* Text color */
+}
+
+.table {
+    width: 100%; /* Full width */
+    border-collapse: collapse; /* Collapse borders for alignment */
+    margin-top:15px ;
+}
+
+.table-header th {
+    position: sticky;
+    background-color: #3A5466; /* Match the header background color */
+    top: -15px;
+    z-index: 9999; /* Higher z-index to stay above the body */
+    padding:15px;
+    font-size: larger;
+    color: #F5F5F5;
+    text-align: center;
+}
+
+.table-body td {
+    border: 1px solid #4A6D80;
+    padding: 8px;
+    text-align: center;
+    color: #F5F5F5;
+}
+
+.table-body tr:nth-child(even) {
+    background-color: #506A7A; /* Alternating row color */
+}
+
+.table-body tr:hover {
+    background-color: #4A7F9E; /* Row hover effect */
+}
+
+.clear {
+    position: fixed;
+    bottom: 15px; /* Adjust as needed for spacing from the bottom */
+    right: 125px; /* Adjust as needed for spacing from the right */
+    z-index: 999; /* Ensure it stays above other content */
+}
+
+.clear button {
+    padding: 10px 20px;
+    background-color: #6C98C4; /* Styling for button */
+    color: #2D3E50; /* Text color */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.clear button:hover {
+    background-color: #4A7F9E; /* Hover effect */
+}
+
+@media (max-width: 768px) {
+    .title h1 {
+        font-size: 30px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 8px 15px;
+    }
+
+    .controls {
+        gap: 10px;
+    }
+
+    .conversion-rate input {
+        width: 60px;
+    }
+
+    .history-box {
+        width: 95%;
+    }
+
+    .clear button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    .conversion-table {
+        position: relative;
+        display: flex;
+        margin-top: 10px;
+        width: 100%;
+        max-width: 300px;
+        margin-left: 15%;
+        text-align: center;
+    }
+
+    .conversion-rate {
+        position: relative;
+        margin-top: 5%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: 18%;
+    }
+    .live-chart {
+        width: 475px; /* Decreased width */
+        height: 350px; /* Decreased height */
+        margin-left: 0;
+        background-color: #3A5466; /* Darker background for the chart area */
+        border: 2px solid #4A6D80;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .live-chart iframe {
+        width: 100%; /* Make the iframe fill the container */
+        height: 100%; /* Make the iframe fill the container */
+        border: none; /* Remove the border */
+    }
+
+    .reading {
+        width: 300px;
+        background-color: #3A5466;
+        border: 2px solid #4A6D80;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-top: 50px;
+        margin-left: 75px;
+    }
+    
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Circuit Breaker</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Add your CSS here */
+    </style>
+</head>
+<body>
+    <div class="main">
+        <a href="index.html" class="back-button">Back</a>
+        
+        <div class="title">
+            <h1>Smart Circuit Breaker</h1>
+        </div>
+
+        <div class="history">
+            <h1>Main Switch History</h1>
+        </div>
+    <div class="clear">
+        <!-- Button to clear history -->
+        <button onclick="clearHistory()">Clear History</button>
+    </div>
+    </div>
+
+    <div class="history-box">
+        <table class="table">
+            <thead class="table-header">
+                <tr>
+                    <th>Time</th>
+                    <th>Switch</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody class="table-body" id="historyTableBody">
+                <!-- History items will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules for Realtime Database
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOGdMZyslKqvjX5qmXRjlaJAzlJ2licsE",
+            authDomain: "smart-circuit-breaker-c0350.firebaseapp.com",
+            databaseURL: "https://smart-circuit-breaker-c0350-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smart-circuit-breaker-c0350",
+            storageBucket: "smart-circuit-breaker-c0350.firebasestorage.app",
+            messagingSenderId: "613992541978",
+            appId: "1:613992541978:web:842b4fe36c9bcb4481c6a3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Reference to the database path for main switch history
+        const mainSwitchRef = ref(database, '/mainSwitchLog');
+
+        // Function to fetch and display main switch history from Firebase
+        async function fetchSwitchHistory() {
+    try {
+        // References to the logs in Firebase
+        const mainSwitchRef = ref(database, '/mainSwitchLog');
+        const subSwitch1Ref = ref(database, '/subSwitch1Log');
+        const subSwitch2Ref = ref(database, '/subSwitch2Log');
+
+        // Fetch the data for main switch and sub-switches
+        const [mainSwitchSnapshot, subSwitch1Snapshot, subSwitch2Snapshot] = await Promise.all([
+            get(mainSwitchRef),
+            get(subSwitch1Ref),
+            get(subSwitch2Ref)
+        ]);
+
+        // Get the table body reference
+        const historyTableBody = document.getElementById('historyTableBody');
+
+        // Function to add a row to the table
+        function addRowToTable(time, status, switchName) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${time}</td>
+                <td>${switchName}</td>
+                <td>${status}</td>
+            `;
+            historyTableBody.appendChild(row);
+        }
+
+        // Function to format the time (adjust as needed)
+        function formatTime(time) {
+            return new Date(time).toLocaleString();
+        }
+
+        // Get current history from local storage
+        let currentHistory = JSON.parse(localStorage.getItem('switchHistory')) || [];
+
+        // Process and update the data for each switch
+        const switchesData = [
+            { snapshot: mainSwitchSnapshot, name: 'Main Switch' },
+            { snapshot: subSwitch1Snapshot, name: 'Sub Switch 1' },
+            { snapshot: subSwitch2Snapshot, name: 'Sub Switch 2' }
+        ];
+
+        switchesData.forEach(({ snapshot, name }) => {
+            if (snapshot.exists()) {
+                const switchData = snapshot.val();
+                if (typeof switchData === 'object' && switchData.time && switchData.status) {
+                    const newEntry = {
+                        time: formatTime(switchData.time),
+                        status: switchData.status,
+                        switchName: name
+                    };
+
+                    // Check for duplicates before adding
+                    if (!currentHistory.some(entry => entry.time === newEntry.time && entry.switchName === newEntry.switchName)) {
+                        currentHistory.push(newEntry);
+                        localStorage.setItem('switchHistory', JSON.stringify(currentHistory));
+                    }
+                }
+            } else {
+                console.log(`No data found for ${name}`);
+            }
+        });
+
+        // Clear and repopulate the table with updated history
+        historyTableBody.innerHTML = '';
+        currentHistory.forEach(entry => {
+            addRowToTable(entry.time, entry.status, entry.switchName);
+        });
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+// Function to clear history data
+window.clearHistory = function() {
+    console.log('Clearing history data...');
+    localStorage.removeItem('switchHistory');
+    // Clear the table after clearing local storage
+    const historyTableBody = document.getElementById('historyTableBody');
+    historyTableBody.innerHTML = '';
+    console.log('History data cleared.');
+};
+
+// Call the function when the page loads
+window.onload = fetchSwitchHistory;
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Circuit Breaker</title>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@latest/plotly.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main">
+        <a href="index.html" class="back-button">Back</a>
+        <div class="title">
+            <h1>Smart Circuit Breaker</h1>
+        </div>
+
+        <div class="voltage">
+            <h1>Temperature Live Chart</h1>
+        </div>
+
+        <div class="chart-container">
+            <div class="live-chart" id="chart-container"></div>
+            <div class="reading">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><h2>Temperature</h2></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="temp-value">-- °C</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOGdMZyslKqvjX5qmXRjlaJAzlJ2licsE",
+            authDomain: "smart-circuit-breaker-c0350.firebaseapp.com",
+            databaseURL: "https://smart-circuit-breaker-c0350-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smart-circuit-breaker-c0350",
+            storageBucket: "smart-circuit-breaker-c0350.firebasestorage.app",
+            messagingSenderId: "613992541978",
+            appId: "1:613992541978:web:842b4fe36c9bcb4481c6a3"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Database reference to temperature data
+        const dataref1 = ref(database, 'temperature/Celsius');
+        const dataRefPath = ref(database, 'temperature/dataLog');
+
+        // Initial chart setup with Plotly
+        let chartData = {
+            x: [],
+            y: [],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Temperature'
+        };
+
+        let layout = {
+            title: 'Temperature Data',
+            xaxis: {
+                title: 'Time',
+                type: 'date'
+            },
+            yaxis: {
+                title: 'Temperature (°C)'
+            },
+            responsive : true
+        };
+
+        // Render initial empty chart
+        Plotly.newPlot('chart-container', [chartData], layout);
+        window.addEventListener('resize', () => {
+                Plotly.Plots.resize('chart-container');
+                });
+
+        // Fetch initial data from Firebase on page load
+        get(dataRefPath).then(snapshot => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const times = Object.keys(data);
+                const values = Object.values(data);
+
+                chartData.x = times.map(time => parseInt(time));
+                chartData.y = values.map(entry => entry.value);
+
+                // Render the initial chart
+                Plotly.newPlot('chart-container', [chartData], layout);
+            } else {
+                console.log("No initial data found.");
+            }
+        }).catch(error => {
+            console.error("Error fetching initial data:", error);
+        });
+
+        // Listen for real-time updates from the database
+        onValue(dataref1, (snapshot) => {
+            const temperatureValue = snapshot.val();
+            const currentTime = new Date().getTime();
+
+            if (temperatureValue !== null && !isNaN(parseFloat(temperatureValue))) {
+                // Save new data point to Firebase under 'temperature/dataLog'
+                const newEntry = {
+                    timestamp: currentTime,
+                    value: parseFloat(temperatureValue)
+                };
+
+                // Save data to Firebase
+                const newDataRef = ref(database, 'temperature/dataLog/' + currentTime);
+                set(newDataRef, newEntry).catch(error => {
+                    console.error("Error saving data to Firebase:", error);
+                });
+
+                // Add new data point to the chart
+                chartData.x.push(currentTime);
+                chartData.y.push(parseFloat(temperatureValue));
+
+                // Update the chart with new data
+                Plotly.update('chart-container', {
+                    x: [chartData.x],
+                    y: [chartData.y]
+                }, layout);
+
+                // Limit the number of data points to the last 100
+                if (chartData.x.length > 100) {
+                    chartData.x.shift();
+                    chartData.y.shift();
+                }
+
+            }
+
+            
+        });
+        onValue(dataref1, (snapshot) => {
+        const te = snapshot.val();
+        console.log('Snapshot value:', te); // Debug line
+    
+        // Display the temperature value in the table cell
+        document.getElementById('temp-value').textContent = te !== null ? `${te.toFixed(2)} °C` : '-- °C';
+        });
+
+    </script>
+</body>
+</html>

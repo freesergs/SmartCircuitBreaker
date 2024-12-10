@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Circuit Breaker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main"></div>
+    <div class="title">
+        <h1>Smart Circuit Breaker</h1>
+    </div>
+
+    <div class="readings"> 
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><a href="temp-live.html">Temperature (C)</a></td>
+                    <td id="temperature">0</td> <!-- Default value set to 0 -->
+                </tr>
+                <tr>
+                    <td><a href="voltage-live.html">Voltage (V)</a></td>
+                    <td id="voltage">0</td> <!-- Default value set to 0 -->
+                </tr>
+                <tr>
+                    <td><a href="current-live.html">Current (A)</a></td>
+                    <td id="current">0</td> <!-- Default value set to 0 -->
+                </tr>
+                <tr>
+                    <td><a href="power-live.html">Power (W)</a></td>
+                    <td id="power">0</td> <!-- Default value set to 0 -->
+                </tr>
+                <tr>
+                    <td><a href="energy-live.html">Energy (kWh)</a></td>
+                    <td id="energy">0</td> <!-- Default value set to 0 -->
+                </tr>
+                <tr>
+                    <td><a href="frequency-live.html">Frequency (Hz)</a></td>
+                    <td id="frequency">0</td> <!-- Default value set to 0 -->
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+
+    <div class="controls">
+        <!-- Main Switch -->
+        <div class="main-switch">
+            <button id="mainSwitch" onclick="toggleMainSwitch()">Turn OFF Main</button>
+        </div>        
+    
+        <!-- Sub Switches -->
+        <div class="sub-switches">
+            <button id="subSwitch1" onclick="toggleSubSwitch1('subSwitch1')">Turn OFF Sub 1</button>
+            <button id="subSwitch2" onclick="toggleSubSwitch2()">Turn OFF Sub 2</button>
+        </div>
+        <button id="switch-history" onclick="window.location.href='switch-history.html'">SWITCH HISTORY</button>
+    </div>
+    
+    <div class="conversion-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Energy (kWh)</th>
+                    <th>Currency</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="energyValue">0</td> <!-- Default value set to 0 -->
+                    <td id="currencyValue">0</td> <!-- Default value set to 0 -->
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Update Conversion Rate -->
+    <div class="conversion-rate">
+        <label for="currencyRate">Currency Rate (per kWh): </label>
+        <input type="number" id="currencyRate" value="0" step="1" />
+    </div>
+
+    
+    
+
+</body>
+        <script type="module">
+            // Import necessary functions from the Firebase SDK
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+            import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+            apiKey: "AIzaSyDOGdMZyslKqvjX5qmXRjlaJAzlJ2licsE",
+            authDomain: "smart-circuit-breaker-c0350.firebaseapp.com",
+            databaseURL: "https://smart-circuit-breaker-c0350-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smart-circuit-breaker-c0350",
+            storageBucket: "smart-circuit-breaker-c0350.firebasestorage.app",
+            messagingSenderId: "613992541978",
+            appId: "1:613992541978:web:842b4fe36c9bcb4481c6a3"
+            };
+        
+        // Initialize Firebase 
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+
+            // Get the data reference for each sensor value
+            const dataref1 = ref(database, 'temperature/Celsius');
+            const dataref2 = ref(database, 'voltage/Value');
+            const dataref3 = ref(database, 'current/Value');
+            const dataref4 = ref(database, 'power/Value');
+            const dataref5 = ref(database, 'frequency/Value');
+            const dataref6 = ref(database, 'energy/Value');
+            const firebaseRef = ref(database, "mainSwitch");
+            const subSwitchRef1 = ref(database, "subSwitch1");
+            const subSwitchRef2 = ref(database, "subSwitch2");
+            const subSwitchRef3 = ref(database, "subSwitches/subSwitch3");
+
+
+            // Listen for changes in the temperature value
+            onValue(dataref1, (snapshot) => {
+                const tempC = snapshot.val();
+                console.log('Temperature value:', tempC); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = tempC !== null ? tempC.toFixed(2) : '0.00';
+                document.getElementById('temperature').innerHTML = formattedValue;
+            });
+
+            // Listen for changes in the voltage value
+            onValue(dataref2, (snapshot) => {
+                const voltageValue = snapshot.val();
+                console.log('Voltage value:', voltageValue); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = voltageValue !== null ? voltageValue.toFixed(2) : '0.00';
+                document.getElementById('voltage').innerHTML = formattedValue;
+            });
+
+            // Listen for changes in the current value
+            onValue(dataref3, (snapshot) => {
+                const currentValue = snapshot.val();
+                console.log('Current value:', currentValue); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = currentValue !== null ? currentValue.toFixed(2) : '0.00';
+                document.getElementById('current').innerHTML = formattedValue;
+            });
+
+            // Listen for changes in the power value
+            onValue(dataref4, (snapshot) => {
+                const powerValue = snapshot.val();
+                console.log('Power value:', powerValue); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = powerValue !== null ? powerValue.toFixed(2) : '0.00';
+                document.getElementById('power').innerHTML = formattedValue;
+            });
+
+            // Listen for changes in the frequency value
+            onValue(dataref5, (snapshot) => {
+                const frequencyValue = snapshot.val();
+                console.log('Frequency value:', frequencyValue); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = frequencyValue !== null ? frequencyValue.toFixed(2) : '0.00';
+                document.getElementById('frequency').innerHTML = formattedValue;
+            });
+
+            onValue(dataref6, (snapshot) => {
+                const energyValue = snapshot.val();
+                console.log('Energy value:', energyValue); // Debug line
+
+                // Format the value to 2 decimal places
+                const formattedValue = energyValue !== null ? energyValue.toFixed(2) : '0.00';
+                document.getElementById('energy').innerHTML = formattedValue;
+            });
+
+        onValue(dataref6, (snapshot) => {
+        const energyValue = snapshot.val();
+        console.log('Energy Value from Firebase:', energyValue); // Debug line
+
+        // Format the energy value to 2 decimal places if it's not null
+        const formattedEnergyValue = energyValue !== null ? energyValue.toFixed(2) : '0.00';
+
+        // Update the energy table cell with the fetched value
+        document.getElementById('energyValue').innerText = formattedEnergyValue;
+
+        // Calculate and update the currency value
+        updateCurrencyValue(energyValue);
+        });
+
+        // Function to update the currency value
+        function updateCurrencyValue() {
+        // Get the currency rate from the input
+        const energyValue = parseFloat(document.getElementById('energyValue').innerText) || 0;
+        const currencyRate = parseFloat(document.getElementById('currencyRate').value) || 0;
+
+        // Calculate the currency based on the energy value and currency rate
+        const calculatedCurrency = energyValue * currencyRate;
+
+        // Update the currency table cell with the calculated value
+        document.getElementById('currencyValue').innerText = calculatedCurrency.toFixed(2);
+
+        // Save the updated values to localStorage
+        localStorage.setItem('energyValue', energyValue);
+        localStorage.setItem('currencyRate', currencyRate);
+        localStorage.setItem('currencyValue', calculatedCurrency.toFixed(2));
+        }
+
+        // Call this function when the currency rate input changes
+        document.getElementById('currencyRate').addEventListener('input', updateCurrencyValue);
+
+        // Load stored values when the page loads
+        window.onload = function() {
+        const storedEnergyValue = localStorage.getItem('energyValue');
+        const storedCurrencyRate = localStorage.getItem('currencyRate');
+        const storedCurrencyValue = localStorage.getItem('currencyValue');
+
+        if (storedEnergyValue !== null) {
+            document.getElementById('energyValue').innerText = storedEnergyValue;
+        }
+
+        if (storedCurrencyRate !== null) {
+            document.getElementById('currencyRate').value = parseFloat(storedCurrencyRate);
+        }
+
+        if (storedCurrencyValue !== null) {
+            document.getElementById('currencyValue').innerText = storedCurrencyValue;
+        }
+
+        // Ensure the initial calculation is up-to-date when the page loads
+        updateCurrencyValue();
+        };
+
+
+// Function to log the switch action with a timestamp
+// Function to log the switch action with a timestamp
+    window.logSwitchAction = function(status) {
+    const timestamp = new Date().toLocaleString();
+    console.log(`Logging status: ${status} with timestamp: ${timestamp}`);
+
+    const statusRef = ref(database, '/mainSwitchLog/status');
+    const timeRef = ref(database, '/mainSwitchLog/time');
+
+    set(statusRef, status)
+        .then(() => {
+            console.log(`Status updated to Firebase: ${status}`);
+        })
+        .catch((error) => {
+            console.error('Error updating status to Firebase:', error);
+        });
+
+    set(timeRef, timestamp)
+        .then(() => {
+            console.log(`Timestamp updated to Firebase: ${timestamp}`);
+        })
+        .catch((error) => {
+            console.error('Error updating timestamp to Firebase:', error);
+        });
+};
+
+// Listen for real-time changes in the main switch state
+onValue(firebaseRef, (snapshot) => {
+    const status = snapshot.val();
+    console.log('Main switch status:', status); // Debug log
+
+    const buttonMain = document.getElementById("mainSwitch");
+    if (status !== null) {
+        buttonMain.textContent = status === 0 ? "Turn OFF Main" : "Turn ON Main";
+    } else {
+        console.warn("mainSwitch state does not exist in Firebase.");
+        buttonMain.textContent = "Turn ON Main"; // Default text if no state exists
+    }
+});
+
+// Function to toggle the main switch state and log the action
+window.toggleMainSwitch = function () {
+    get(firebaseRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            let mainSwitchStatus = snapshot.val();
+            let newStatus = mainSwitchStatus === 0 ? 1 : 0;
+
+            set(firebaseRef, newStatus)
+                .then(() => {
+                    console.log(`Main Switch set to ${newStatus === 0 ? 'ON' : 'OFF'}`);
+                    const statusText = newStatus === 0 ? "ON" : "OFF";
+                    const buttonText = newStatus === 0 ? "Turn OFF Main" : "Turn ON Main";
+                    document.getElementById("mainSwitch").textContent = buttonText;
+                    logSwitchAction(statusText);
+                })
+                .catch((error) => {
+                    console.error("Error setting Main Switch:", error);
+                });
+        }
+    }).catch((error) => {
+        console.error("Error reading mainSwitch state:", error);
+    });
+};
+
+onValue(subSwitchRef1, (snapshot) => {
+    const status = snapshot.val();
+    console.log('Sub Switch 1 status:', status); // Debug log
+
+    const buttonSub1 = document.getElementById("subSwitch1");
+    if (status !== null) {
+        buttonSub1.textContent = status === 0 ? "Turn OFF Sub 1" : "Turn ON Sub 1";
+    } else {
+        console.warn("subSwitch1 state does not exist in Firebase.");
+        buttonSub1.textContent = "Turn ON Sub 1"; // Default text if no state exists
+    }
+});
+
+// Function to log the switch action with a timestamp
+window.logSwitchActionSub1 = function(status) {
+    const timestamp = new Date().toLocaleString();
+    console.log(`Logging Sub Switch 1 status: ${status} with timestamp: ${timestamp}`);
+
+    const statusRef = ref(database, '/subSwitch1Log/status');
+    const timeRef = ref(database, '/subSwitch1Log/time');
+
+    set(statusRef, status)
+        .then(() => {
+            console.log(`Sub Switch 1 status updated to Firebase: ${status}`);
+        })
+        .catch((error) => {
+            console.error('Error updating Sub Switch 1 status to Firebase:', error);
+        });
+
+    set(timeRef, timestamp)
+        .then(() => {
+            console.log(`Sub Switch 1 timestamp updated to Firebase: ${timestamp}`);
+        })
+        .catch((error) => {
+            console.error('Error updating Sub Switch 1 timestamp to Firebase:', error);
+        });
+};
+
+// Function to toggle the subSwitch1 state and log the action
+window.toggleSubSwitch1 = function (switchId) {
+    get(subSwitchRef1).then((snapshot) => {
+        if (snapshot.exists()) {
+            let subSwitch1Status = snapshot.val();
+            let newStatus = subSwitch1Status === 0 ? 1 : 0;
+
+            set(subSwitchRef1, newStatus)
+                .then(() => {
+                    console.log(`Sub Switch 1 set to ${newStatus === 0 ? 'ON' : 'OFF'}`);
+                    const buttonText = newStatus === 0 ? "Turn OFF Sub 1" : "Turn ON Sub 1";
+                    document.getElementById(switchId).textContent = buttonText;
+                    logSwitchActionSub1(newStatus === 0 ? "ON" : "OFF");
+                })
+                .catch((error) => {
+                    console.error("Error setting Sub Switch 1:", error);
+                });
+        }
+    }).catch((error) => {
+        console.error("Error reading subSwitch1 state:", error);
+    });
+};
+
+onValue(subSwitchRef2, (snapshot) => {
+    const status = snapshot.val();
+    console.log('Sub Switch 2 status:', status); // Debug log
+
+    const buttonSub2 = document.getElementById("subSwitch2");
+    if (status !== null) {
+        buttonSub2.textContent = status === 0 ? "Turn OFF Sub 2" : "Turn ON Sub 2";
+    } else {
+        console.warn("subSwitch2 state does not exist in Firebase.");
+        buttonSub2.textContent = "Turn ON Sub 2"; // Default text if no state exists
+    }
+});
+
+// Function to log the switch action with a timestamp
+window.logSwitchActionSub2 = function(status) {
+    const timestamp = new Date().toLocaleString();
+    console.log(`Logging Sub Switch 2 status: ${status} with timestamp: ${timestamp}`);
+
+    const statusRef = ref(database, '/subSwitch2Log/status');
+    const timeRef = ref(database, '/subSwitch2Log/time');
+
+    set(statusRef, status)
+        .then(() => {
+            console.log(`Sub Switch 2 status updated to Firebase: ${status}`);
+        })
+        .catch((error) => {
+            console.error('Error updating Sub Switch 2 status to Firebase:', error);
+        });
+
+    set(timeRef, timestamp)
+        .then(() => {
+            console.log(`Sub Switch 2 timestamp updated to Firebase: ${timestamp}`);
+        })
+        .catch((error) => {
+            console.error('Error updating Sub Switch 2 timestamp to Firebase:', error);
+        });
+};
+
+// Function to toggle the subSwitch2 state and log the action
+window.toggleSubSwitch2 = function () {
+    get(subSwitchRef2).then((snapshot) => {
+        if (snapshot.exists()) {
+            let subSwitch2Status = snapshot.val();
+            let newStatus = subSwitch2Status === 0 ? 1 : 0;
+
+            set(subSwitchRef2, newStatus)
+                .then(() => {
+                    console.log(`Sub Switch 2 set to ${newStatus === 0 ? 'ON' : 'OFF'}`);
+                    const buttonText = newStatus === 0 ? "Turn OFF Sub 2" : "Turn ON Sub 2";
+                    document.getElementById("subSwitch2").textContent = buttonText;
+                    logSwitchActionSub2(newStatus === 0 ? "ON" : "OFF");
+                })
+                .catch((error) => {
+                    console.error("Error setting Sub Switch 2:", error);
+                });
+        }
+    }).catch((error) => {
+        console.error("Error reading subSwitch2 state:", error);
+    });
+};
+
+
+// Function to calculate and update the currency value
+function calculateCurrencyValue() {
+    // Get the currency rate and energy value
+    const energyValue = parseFloat(document.getElementById('energyValue').innerText) || 0;
+    const currencyRate = parseFloat(document.getElementById('currencyRate').value) || 0;
+
+    // Calculate the currency based on the energy value and currency rate
+    const calculatedCurrency = energyValue * currencyRate;
+
+    // Update the currency table cell with the calculated value
+    document.getElementById('currencyValue').innerText = calculatedCurrency.toFixed(2);
+
+    // Save the updated values to localStorage
+    localStorage.setItem('energyValue', energyValue);
+    localStorage.setItem('currencyRate', currencyRate);
+    localStorage.setItem('currencyValue', calculatedCurrency.toFixed(2));
+
+    // Send the calculated currency value to Firebase
+    const currencyRef = ref(database, 'currency/Value');
+    set(currencyRef, calculatedCurrency)
+        .then(() => {
+            console.log('Currency value sent to Firebase:', calculatedCurrency.toFixed(2));
+        })
+        .catch((error) => {
+            console.error('Error sending currency value to Firebase:', error);
+        });
+}
+
+// Add event listener for currency rate input changes
+document.getElementById('currencyRate').addEventListener('input', calculateCurrencyValue);
+
+// Load stored values when the page loads
+window.onload = function () {
+    const storedEnergyValue = localStorage.getItem('energyValue');
+    const storedCurrencyRate = localStorage.getItem('currencyRate');
+    const storedCurrencyValue = localStorage.getItem('currencyValue');
+
+    if (storedEnergyValue !== null) {
+        document.getElementById('energyValue').innerText = storedEnergyValue;
+    }
+
+    if (storedCurrencyRate !== null) {
+        document.getElementById('currencyRate').value = parseFloat(storedCurrencyRate);
+    }
+
+    if (storedCurrencyValue !== null) {
+        document.getElementById('currencyValue').innerText = storedCurrencyValue;
+    }
+
+    // Ensure the initial calculation is up-to-date when the page loads
+    calculateCurrencyValue();
+};
+</script>
+</html>
