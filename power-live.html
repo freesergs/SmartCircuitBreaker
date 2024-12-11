@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Circuit Breaker</title>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@latest/plotly.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Add your CSS here */
+    </style>
+</head>
+<body>
+    <div class="main">
+        <a href="index.html" class="back-button">Back</a>
+        
+        <div class="title">
+            <h1>Smart Circuit Breaker</h1>
+        </div>
+
+        <div class="power">
+            <h1>Power Live Chart</h1>
+        </div>
+        
+        <div class="chart-container">
+            <div class="live-chart" id="chart-container"></div>
+            <div class="reading">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><h2>Power</h2></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="power-value">-- W</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import necessary functions from the Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOGdMZyslKqvjX5qmXRjlaJAzlJ2licsE",
+            authDomain: "smart-circuit-breaker-c0350.firebaseapp.com",
+            databaseURL: "https://smart-circuit-breaker-c0350-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smart-circuit-breaker-c0350",
+            storageBucket: "smart-circuit-breaker-c0350.firebasestorage.app",
+            messagingSenderId: "613992541978",
+            appId: "1:613992541978:web:842b4fe36c9bcb4481c6a3"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Get the data reference for power
+        const dataref1 = ref(database, 'power/Value');
+        const dataLogRef = ref(database, 'power/dataLog');
+
+        // Initial chart setup with Plotly
+        let chartData = {
+            x: [],
+            y: [],
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Power'
+        };
+
+        let layout = {
+            title: 'Power Data',
+            xaxis: {
+                title: 'Time',
+                type: 'date'
+            },
+            yaxis: {
+                title: 'Power (W)'
+            },
+            responsive : true
+        };
+
+        // Render initial empty chart
+        Plotly.newPlot('chart-container', [chartData], layout);
+        window.addEventListener('resize', () => {
+                Plotly.Plots.resize('chart-container');
+                });
+        // Load existing data from Firebase and display on the chart
+        get(dataLogRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                const times = Object.keys(data);
+                const values = Object.values(data);
+
+                chartData.x = times.map(time => parseInt(time));
+                chartData.y = values.map(entry => entry.value);
+
+                // Render the initial chart
+                Plotly.newPlot('chart-container', [chartData], layout);
+            } else {
+                console.log("No initial data found.");
+            }
+        }).catch((error) => {
+            console.error("Error loading data from Firebase:", error);
+        });
+
+        // Listen for changes in the power value
+        onValue(dataref1, (snapshot) => {
+            const powerValue = snapshot.val();
+            const currentTime = new Date().getTime();
+
+            if (powerValue !== null && !isNaN(parseFloat(powerValue))) {
+                // Save the new data to the database with timestamp
+                const newEntry = {
+                    timestamp: currentTime,
+                    value: parseFloat(powerValue)
+                };
+
+                // Save data to Firebase under 'power/dataLog'
+                const newDataRef = ref(database, 'power/dataLog/' + currentTime);
+                set(newDataRef, newEntry).catch(error => {
+                    console.error("Error saving data to Firebase:", error);
+                });
+
+                // Add new data point to the chart
+                chartData.x.push(currentTime);
+                chartData.y.push(parseFloat(powerValue));
+
+                // Update the chart with new data
+                Plotly.update('chart-container', {
+                    x: [chartData.x],
+                    y: [chartData.y]
+                }, layout);
+
+                // Limit the number of data points to the last 100
+                if (chartData.x.length > 100) {
+                    chartData.x.shift();
+                    chartData.y.shift();
+                }
+
+                // Display the power value in the table cell
+                document.getElementById('power-value').textContent = powerValue !== null ? `${powerValue.toFixed(2)} W` : '-- W';
+            } else {
+                // Display placeholder if no valid data
+                document.getElementById('power-value').textContent = '-- W';
+            }
+        });
+    </script>
+</body>
+</html>
