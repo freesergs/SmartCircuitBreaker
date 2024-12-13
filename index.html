@@ -122,7 +122,8 @@
             const subSwitchRef2 = ref(database, "subSwitch2");
             const subSwitchRef3 = ref(database, "subSwitches/subSwitch3");
 
-
+            let alertTriggered = false;
+            let currentAlertBox = null;
             // Listen for changes in the temperature value
             onValue(dataref1, (snapshot) => {
                 const tempC = snapshot.val();
@@ -131,7 +132,80 @@
                 // Format the value to 2 decimal places
                 const formattedValue = tempC !== null ? tempC.toFixed(2) : '0.00';
                 document.getElementById('temperature').innerHTML = formattedValue;
+
+                if (tempC >= 38) {
+                    if (!alertTriggered) {
+                        alertTriggered = true;
+                        showAlert("Main Breaker Off, Temp Too High", tempC);
+                        playSound();
+                    }
+                } else if (tempC >= 36 && tempC < 38) {
+                    if (!alertTriggered) {
+                        alertTriggered = true;
+                        showAlert(`Warning: Temperature Reached ${tempC}°C`, tempC);
+                        
+                    }
+                } else if (tempC < 36) {
+                    if (alertTriggered) {
+                        alertTriggered = false;
+                        removeAlert();
+                    }
+                }
+                document.getElementById('temp-value').textContent = tempC !== null ? `${tempC.toFixed(2)} °C` : '-- °C';
             });
+            
+            function showAlert(message, temperature) {
+            const alertBox = document.createElement('div');
+            alertBox.style.position = 'fixed';
+            alertBox.style.top = '20px';
+            alertBox.style.right = '20px';
+            alertBox.style.padding = '10px 20px';
+            alertBox.style.backgroundColor = temperature >= 38 ? 'red' : 'orange'; // Red for critical, orange for warning
+            alertBox.style.color = 'white';
+            alertBox.style.fontSize = '16px';
+            alertBox.style.borderRadius = '5px';
+            alertBox.innerText = message;
+
+            // Create a button to remove the alert
+            const closeButton = document.createElement('button');
+            closeButton.innerText = 'Close';
+            closeButton.style.marginLeft = '10px';
+            closeButton.style.backgroundColor = '#fff';
+            closeButton.style.border = 'none';
+            closeButton.style.padding = '5px 10px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.addEventListener('click', () => {
+                alertBox.remove(); // Remove the alert when the button is clicked
+            });
+
+            // Add button to the alert box
+            alertBox.appendChild(closeButton);
+
+            // Add alert box to the document
+            document.body.appendChild(alertBox);
+
+            // Store the alert box for future removal
+            currentAlertBox = alertBox;
+        }
+
+        // Function to remove the alert
+        function removeAlert() {
+            if (currentAlertBox) {
+                currentAlertBox.remove(); // Remove the alert box
+                currentAlertBox = null; // Reset the alert box reference
+            }
+        }
+
+        // Function to play a 10-second sound notification
+        function playSound() {
+            const audio = new Audio('assets/sound.mp3');
+            audio.play();
+            // Stop the sound after 10 seconds
+            setTimeout(() => {
+                audio.pause();
+                audio.currentTime = 0; // Reset to start
+            }, 10000);
+        }
 
             // Listen for changes in the voltage value
             onValue(dataref2, (snapshot) => {

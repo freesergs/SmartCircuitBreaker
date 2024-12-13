@@ -84,8 +84,8 @@
         // Render initial empty chart
         Plotly.newPlot('chart-container', [chartData], layout);
         window.addEventListener('resize', () => {
-                Plotly.Plots.resize('chart-container');
-                });
+            Plotly.Plots.resize('chart-container');
+        });
 
         // Fetch initial data from Firebase on page load
         get(dataRefPath).then(snapshot => {
@@ -107,6 +107,9 @@
         });
 
         // Listen for real-time updates from the database
+        let alertTriggered = false;
+        let currentAlertBox = null; // To store the current alert box element
+
         onValue(dataref1, (snapshot) => {
             const temperatureValue = snapshot.val();
             const currentTime = new Date().getTime();
@@ -140,18 +143,84 @@
                     chartData.y.shift();
                 }
 
+                // Alert logic
+                if (temperatureValue >= 38) {
+                    if (!alertTriggered) {
+                        alertTriggered = true;
+                        showAlert("Main Breaker Off, Temp Too High", temperatureValue);
+                        playSound();
+                    }
+                } else if (temperatureValue >= 36 && temperatureValue < 38) {
+                    if (!alertTriggered) {
+                        alertTriggered = true;
+                        showAlert(`Warning: Temperature Reached ${temperatureValue}°C`, temperatureValue);
+                    }
+                } else if (temperatureValue < 36) {
+                    if (alertTriggered) {
+                        alertTriggered = false;
+                        removeAlert();
+                    }
+                }
             }
 
-            
-        });
-        onValue(dataref1, (snapshot) => {
-        const te = snapshot.val();
-        console.log('Snapshot value:', te); // Debug line
-    
-        // Display the temperature value in the table cell
-        document.getElementById('temp-value').textContent = te !== null ? `${te.toFixed(2)} °C` : '-- °C';
+            // Display the temperature value in the table cell
+            document.getElementById('temp-value').textContent = temperatureValue !== null ? `${temperatureValue.toFixed(2)} °C` : '-- °C';
         });
 
+        // Function to display an alert notification
+        function showAlert(message, temperature) {
+            const alertBox = document.createElement('div');
+            alertBox.style.position = 'fixed';
+            alertBox.style.top = '20px';
+            alertBox.style.right = '20px';
+            alertBox.style.padding = '10px 20px';
+            alertBox.style.backgroundColor = temperature >= 38 ? 'red' : 'orange'; // Red for critical, orange for warning
+            alertBox.style.color = 'white';
+            alertBox.style.fontSize = '16px';
+            alertBox.style.borderRadius = '5px';
+            alertBox.innerText = message;
+
+            // Create a button to remove the alert
+            const closeButton = document.createElement('button');
+            closeButton.innerText = 'Close';
+            closeButton.style.marginLeft = '10px';
+            closeButton.style.backgroundColor = '#fff';
+            closeButton.style.border = 'none';
+            closeButton.style.padding = '5px 10px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.addEventListener('click', () => {
+                alertBox.remove(); // Remove the alert when the button is clicked
+            });
+
+            // Add button to the alert box
+            alertBox.appendChild(closeButton);
+
+            // Add alert box to the document
+            document.body.appendChild(alertBox);
+
+            // Store the alert box for future removal
+            currentAlertBox = alertBox;
+        }
+
+        // Function to remove the alert
+        function removeAlert() {
+            if (currentAlertBox) {
+                currentAlertBox.remove(); // Remove the alert box
+                currentAlertBox = null; // Reset the alert box reference
+            }
+        }
+
+        // Function to play a 10-second sound notification
+        function playSound() {
+            const audio = new Audio('assets/alert-sound.mp3');
+            audio.play();
+
+            // Stop the sound after 10 seconds
+            setTimeout(() => {
+                audio.pause();
+                audio.currentTime = 0; // Reset to start
+            }, 10000);
+        }
     </script>
 </body>
 </html>
