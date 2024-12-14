@@ -124,6 +124,7 @@
 
             let alertTriggered = false;
             let currentAlertBox = null;
+            let audio = null
             // Listen for changes in the temperature value
             onValue(dataref1, (snapshot) => {
                 const tempC = snapshot.val();
@@ -133,19 +134,19 @@
                 const formattedValue = tempC !== null ? tempC.toFixed(2) : '0.00';
                 document.getElementById('temperature').innerHTML = formattedValue;
 
-                if (tempC >= 38) {
+                if (tempC >= 37) {
                     if (!alertTriggered) {
                         alertTriggered = true;
                         showAlert("Main Breaker Off, Temp Too High", tempC);
                         playSound();
                     }
-                } else if (tempC >= 36 && tempC < 38) {
+                } else if (tempC >= 35 && tempC < 37) {
                     if (!alertTriggered) {
                         alertTriggered = true;
                         showAlert(`Warning: Temperature Reached ${tempC}°C`, tempC);
-                        
+                        stopSound();
                     }
-                } else if (tempC < 36) {
+                } else if (tempC < 32) {
                     if (alertTriggered) {
                         alertTriggered = false;
                         removeAlert();
@@ -176,6 +177,7 @@
             closeButton.style.cursor = 'pointer';
             closeButton.addEventListener('click', () => {
                 alertBox.remove(); // Remove the alert when the button is clicked
+                stopSound(); 
             });
 
             // Add button to the alert box
@@ -198,14 +200,23 @@
 
         // Function to play a 10-second sound notification
         function playSound() {
-            const audio = new Audio('sound.mp3');
-            audio.play();
-            // Stop the sound after 10 seconds
-            setTimeout(() => {
-                audio.pause();
-                audio.currentTime = 0; // Reset to start
-            }, 10000);
-        }
+    if (audio) {
+        audio.play();  // If the sound is already playing, do nothing
+    } else {
+        audio = new Audio('sound.mp3');
+        audio.loop = true;  // Loop the sound
+        audio.play();
+    }
+}
+
+// Function to stop the sound when the alert is closed
+function stopSound() {
+    if (audio) {
+        audio.pause();  // Pause the audio
+        audio.currentTime = 0;  // Reset to the beginning
+        audio = null;  // Clear the audio instance
+    }
+}
 
             // Listen for changes in the voltage value
             onValue(dataref2, (snapshot) => {
